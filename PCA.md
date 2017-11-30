@@ -1,8 +1,8 @@
 # Principle Component Analysis
 
 Mostly taken from http://www.cs.otago.ac.nz/cosc453/student_tutorials/principal_components.pdf
-
 Should also look at http://sebastianraschka.com/Articles/2015_pca_in_3_steps.html
+[kaggle1] https://www.kaggle.com/arthurtok/interactive-intro-to-dimensionality-reduction
 
 
 ## Basic Stats
@@ -46,7 +46,15 @@ For a 2 dimensional data set
 * Rescale each of our components to a 0 mean (X = X - X_m)
 * Build the covariance matrix - 2x2 matrix.
 * Calculate the eigenvalues/vectors for this matrix
-    * Large eigenvalues are the most significant ways that the data vary.
-    * If you like, could ignore smaller eigenvalues
+    * Eigenvectors tell you the orientation of the new axis. (Goes through the origin and this vector)
+    * Eigenvalues tell you how significant this new axis is. (How stretched it is?)
+        * If you like, could ignore smaller eigenvalues
 * Multiply the original data set by the eigenvectors (or possibly reduced eigenvectors)
     * You will want to do this for both the test and training set (if relevant)
+
+## Thoughts
+* It appears that by applying PCA you will always get worse performance. However, it may be that the speed increase is worth this - you can test more other params. Though once you have found the best other params, you should probably switch back to the full data set.
+* PCA is an unsupervised method. This means that if you have labelled data, you don't take advantage of that. This comes back to my thought experiment of:
+    * x = [some vars], y = x + some normally distributed random var. label == y > x then 1 else 0
+    * if the random var has less variance than x, PCA would throw away x despite all info being contained in the random var.
+    * "PCA is meant to be an unsupervised method and therefore not optimised for separating different class labels" [kaggle1]
