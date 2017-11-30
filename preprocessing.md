@@ -13,3 +13,12 @@ See http://scikit-learn.org/stable/modules/preprocessing.html
     * I'm not actually sure about why...
     * This shouldn't make much of a difference (assuming our test and training set are large and were randomly separated).
     * My guess - you don't need the 0 mean, unit variance in the test set (that is just for the training algo) more important is that the test set is scaled the same way as the training set.
+
+
+## Dimensionality reduction
+
+* Consider some data in 3d space that hash x = [ <some values> ], y = [ <some values> ], z = x. This is actually just 2d data maskerading as 3d data. The z axis gives us nothing new.
+* We can reduce this to 2d data and so speed up our fitting/analysis.
+* We can also reduce dimensions by throwing away some data.
+    * This appears to always make your model perform slightly worse (as expected?)
+    * Maybe you should use this to try many other parameters and then run the final with full dimensions?
