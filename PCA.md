@@ -6,16 +6,16 @@ Should also look at http://sebastianraschka.com/Articles/2015_pca_in_3_steps.htm
 
 
 ## Basic Stats
-* take a data set X which has n elements (each element can have multiple components).
+* take a data set X which has n samples (each element can have multiple features).
 
-### Defined for a single component
+### Defined for a single features
 * Mean = X_m = Sum (i = 1 to n) (X_i / n)
 * Variance = s^2 = Sum (i = i to n) ((X_i - X_m)^2 / (n-1))
     * note the n-1. For some reason you use n-1 when this is a sample, n if it is a full population.
 * Standard dev = s = sqrt(variance)
 
-### Defined for multiple components
-* Covariance - a measure of how two components vary with respect to each other, e.g. Hours studied vs grade.
+### Defined for multiple features
+* Covariance - a measure of how two features vary with respect to each other, e.g. Hours studied vs grade.
     * cov(x, y) = Sum (i = i to n) ((X_i - X_m)(Y_i - Y-M) / (n-1))
     * positive covariance means that as one increases so does the other.
     * negative covariance means that as one increases the other decreases.
@@ -23,7 +23,7 @@ Should also look at http://sebastianraschka.com/Articles/2015_pca_in_3_steps.htm
     * cov(x, y) = cov(y, x)
     * cov(x, y) = var(x) (multiplied by n-1?)
 * Covariance matrix
-    * If out data has 3 components we can have cov(x|y|z, x|y|z) or 9 covariances. This is a matrix.
+    * If out data has 3 features we can have cov(x|y|z, x|y|z) or 9 covariances. This is a matrix.
         * C_xx C_xy C_xz
         * C_yx C_yy C_yz
         * C_zx C_zy C_zz
@@ -35,20 +35,21 @@ Should also look at http://sebastianraschka.com/Articles/2015_pca_in_3_steps.htm
 * Eigenvectors are orthogonal to each other (you can use them to make a basis)
 * Av = kv (where A is the square matrix, v the eigenvector, k the eigenvalue)
 * If v is an eigenvector c*V is also an eigenvector. Usually we will scale to get the unit eigenvector.
+* Eigenvectors are vectors for which the matrix A just changes the length, not the direction.
 
 
 ## PCA (finally!)
 
-If we have n dimensional data currently represented on (x_1, x_2, ... x_n) axis. Can we instead represent that data using a new basis that is more useful? Can we concentrate the usefulness along a few axis allowing us to drop the other axis, speeding up analysis.
+If we have n dimensional data currently represented on (x_1, x_2, ... x_n) axis. Can we instead represent that data using a new basis that allows us to have fewer dimensions but is equally useful? Can we concentrate the usefulness along a few axis allowing us to drop the other axis, speeding up analysis.
 
 ### Method
 For a 2 dimensional data set
-* Rescale each of our components to a 0 mean (X = X - X_m)
+* Rescale each of our features to a 0 mean (X = X - X_m)
 * Build the covariance matrix - 2x2 matrix.
 * Calculate the eigenvalues/vectors for this matrix
     * Eigenvectors tell you the orientation of the new axis. (Goes through the origin and this vector)
     * Eigenvalues tell you how significant this new axis is. (How stretched it is?)
-        * If you like, could ignore smaller eigenvalues
+        * If you like, could ignore smaller eigenvalues to reduce data size
 * Multiply the original data set by the eigenvectors (or possibly reduced eigenvectors)
     * You will want to do this for both the test and training set (if relevant)
 
@@ -58,3 +59,4 @@ For a 2 dimensional data set
     * x = [some vars], y = x + some normally distributed random var. label == y > x then 1 else 0
     * if the random var has less variance than x, PCA would throw away x despite all info being contained in the random var.
     * "PCA is meant to be an unsupervised method and therefore not optimised for separating different class labels" [kaggle1]
+* PCA assumes that most of the information is along axis that have most of the variance.
