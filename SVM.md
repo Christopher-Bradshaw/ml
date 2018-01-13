@@ -1,4 +1,5 @@
 # Support Vector Machines
+* Non probibalistic, linear classifier.
 
 
 ## Basic Application
@@ -28,6 +29,9 @@
 * Add a penalty as the size of margin gets small. (with some scaling factor lambda)
 * We now trade off getting things on the wrong side with the size of the margin we want.
 
+### Perceptron interpretation
+* Our hyperplane is made up of the set of x vectors that satisfy: w dot x - b = 0
+* w is the set of weights our perceptron needs to learn
 
 ## Kernels
 
