@@ -1,0 +1,10 @@
+Follow general advice from http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
+
+Once it was mostly installed, did some dirty hacks.
+* Point 12 from https://davidwpearson.wordpress.com/2017/01/12/installing-nvidias-cuda-8-0-on-fedora-25/ (except the directory was /usr/local/cuda-8.0/include/crt/host_config.h). This is to all gcc 8 rather than just 6
+* https://github.com/caffe2/caffe2/issues/1194#issuecomment-330668216 or https://xpra.org/trac/ticket/1600. Edit /usr/include/bits/floatn.h to get 128 bit floats
+* restart
+
+With these, was able to get device query to run!
+
+I was still getting warnings about MPI: `WARNING - No MPI compiler found.` Going to try get pytorch running without worrying about this
