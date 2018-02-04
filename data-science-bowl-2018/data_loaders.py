@@ -3,14 +3,15 @@ import numpy as np
 import skimage.io
 
 datadir = "/home/christopher/Data/data/ml/data-science-bowl-2018/"
+wdir = "saved_weights/"
 
 def training_images():
-    return get_images("train")
+    return _get_images("train")
 
 def test_images():
-    return get_images("test")
+    return _get_images("test")
 
-def get_images(subdir):
+def _get_images(subdir):
     if subdir not in set(["train", "test"]):
         raise Exception("You probably want test or train images, not {}".format(subdir))
     keys = os.listdir(datadir + subdir)
@@ -38,27 +39,16 @@ def training_masks():
             assert len(img.shape) == 2
             assert img.shape[0] >= 256 and img.shape[1] >= 256
             f_res.append(img)
-        res.append(np.array(f_res))
+        res.append(np.array(f_res, dtype=np.bool))
     return res
 
-# given masks returned from training_masks, returns them without any of the border masks
-# useful for stats
-def filter_border_masks(masks):
-    res = []
-    for image_masks in masks:
-        f_res = []
-        for mask in image_masks:
-            for edge in [mask[0], mask[-1], mask[:,0], mask[:,-1]]:
-                if not np.all(edge == 0):
-                    break
-            else: # no break
-                f_res.append(np.copy(mask))
-        res.append(np.array(f_res))
-    return res
+def save_weights(weights):
+    try:
+        os.mkdir(datadir + wdir)
+    except FileExistsError:
+        raise Exception("You have already saved weights. Go remove them before saving new ones!")
 
-# create a single mask for each image
-def single_masks(masks):
-    res = []
-    for image_masks in masks:
-        res.append(np.sum(image_masks, axis=0))
-    return res
+    np.save(datadir + wdir + "weights", weights)
+
+def weights():
+    return np.load(datadir + wdir + "weights.npy")
