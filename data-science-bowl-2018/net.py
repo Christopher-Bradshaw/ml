@@ -2,12 +2,15 @@
 Made use of https://github.com/milesial/Pytorch-UNet/tree/master/unet
 """
 import torch.nn as nn
+import torch
 import torch.nn.functional as F
 
 # From end of section 2:
 # To allow a seamless tiling of the output segmentation map (see Figure 2), it
 # is important to select the input tile size such that all 2x2 max-pooling operations
 # are applied to a layer with an even x- and y-size.
+
+
 class u_net(nn.Module):
     def __init__(self):
         super(u_net, self).__init__()
@@ -16,6 +19,12 @@ class u_net(nn.Module):
         self.d3 = full_down(128, 256)
         self.d4 = full_down(256, 512)
         self.d5 = full_down(512, 1024)
+
+        self.u1 = full_up(1024, 512)
+        self.u2 = full_up(512, 256)
+        self.u3 = full_up(256, 128)
+        self.u4 = full_up(128, 64)
+        self.out = nn.Conv2d(64, 1, 1)
 
     def forward(self, *inp):
         x0 = inp[0]
@@ -26,6 +35,13 @@ class u_net(nn.Module):
         x3 = self.d3(x2)
         x4 = self.d4(x3)
         x = self.d5(x4)
+
+        x = self.u1(x4, x)
+        x = self.u2(x3, x)
+        x = self.u3(x2, x)
+        x = self.u4(x1, x)
+
+        x = self.out(x)
 
         return x
 
@@ -57,16 +73,19 @@ class full_down(nn.Module):
 class full_up(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(full_up, self).__init__()
+        # Slightly confusing. We transpose it to the number of out channels
+        # Then we double the number of channels (pulling in data from across the U)
+        # Then we halve the number of channels with the convolutions
+        self.transpose_conv = nn.ConvTranspose2d(in_ch, out_ch, 2, stride=2)
+        self.conv = double_conv(2*out_ch, out_ch)
 
     def forward(self, *inp):
-        x = inp[0]
-        return x
+        across, x = inp[0], inp[1]
+        x = self.transpose_conv(x)
 
-class test(nn.Module):
-    def __init__(self):
-        super(test, set).__init__()
-        self.conv = nn.ConvTranspose1d(100, 100, 2)
-
-    def forward(self, *inp):
-        x = inp[0]
+        s = int((across.shape[3] - x.shape[3])/2)
+        across = across[:,:,s:-s,s:-s]
+        # pylint: disable=E1101
+        x = torch.cat((across, x), dim = 1)
+        x = self.conv(x)
         return x
