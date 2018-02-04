@@ -1,15 +1,10 @@
 """
-Made use of https://github.com/milesial/Pytorch-UNet/tree/master/unet
+See the paper: https://arxiv.org/pdf/1505.04597.pdf
+Made use of: https://github.com/milesial/Pytorch-UNet/tree/master/unet
 """
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-
-# From end of section 2:
-# To allow a seamless tiling of the output segmentation map (see Figure 2), it
-# is important to select the input tile size such that all 2x2 max-pooling operations
-# are applied to a layer with an even x- and y-size.
-
 
 class u_net(nn.Module):
     def __init__(self):
@@ -27,10 +22,9 @@ class u_net(nn.Module):
         self.out = nn.Conv2d(64, 1, 1)
 
     def forward(self, *inp):
-        x0 = inp[0]
+        x = inp[0]
 
-        # These 4 downsamples are used in the up sample
-        x1 = self.d1(x0)
+        x1 = self.d1(x)
         x2 = self.d2(x1)
         x3 = self.d3(x2)
         x4 = self.d4(x3)
@@ -42,7 +36,6 @@ class u_net(nn.Module):
         x = self.u4(x1, x)
 
         x = self.out(x)
-
         return x
 
 
