@@ -3,13 +3,23 @@ Set of helpers to make our masks useful to u net
 """
 import numpy as np
 from scipy.ndimage import distance_transform_edt, label
+# from multiprocessing import Pool
+# import tqdm
 
-# masks is a list( np.array(mask1, mask2), np.array(mask1, mask2), ... )
+# mask_list is a list( np.array(mask1, mask2), np.array(mask1, mask2), ... )
 def weights_from_all_masks(mask_list):
-    weights = []
-    for masks in mask_list:
-        weights.append(weights_from_mask(masks))
-    return weights
+    summary_masks, weights = [], []
+    # with Pool(8) as p:
+    #     for v in tqdm.tqdm(p.map(weights_from_mask, mask_list), total=len(mask_list)):
+    #         summary_masks.append(v[0])
+    #         weights.append(v[1])
+    for (i, masks) in enumerate(mask_list):
+        s, w = weights_from_mask(masks)
+        summary_masks.append(s)
+        weights.append(w)
+        if i % 10 == 0:
+            print(i)
+    return summary_masks, weights
 
 # masks is a np.array( np.array(mask1), np.array(mask2), ... ) with type bool
 def weights_from_mask(masks):
@@ -42,7 +52,7 @@ def weights_from_mask(masks):
                 d = np.unique(distances[i][j])
                 assert (len(d) in (1, 2))
                 weights[i][j] = empty_weight + w0 * np.exp( -((d[0]+d[-1])**2) / (2 * sigma**2) )
-    return weights
+    return seg_summary_mask, weights
 
 def get_segmented_summary_mask(masks):
     res = np.zeros(masks[0].shape)

@@ -42,13 +42,14 @@ def training_masks():
         res.append(np.array(f_res, dtype=np.bool))
     return res
 
-def save_weights(weights):
+def save_weights(summary_masks, weights):
     try:
         os.mkdir(datadir + wdir)
     except FileExistsError:
         raise Exception("You have already saved weights. Go remove them before saving new ones!")
 
     np.save(datadir + wdir + "weights", weights)
+    np.save(datadir + wdir + "summary_masks", summary_masks)
 
 def weights():
-    return np.load(datadir + wdir + "weights.npy")
+    return np.load(datadir + wdir + "summary_masks.npy"), np.load(datadir + wdir + "weights.npy")
