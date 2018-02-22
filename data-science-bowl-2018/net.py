@@ -50,26 +50,30 @@ class u_net(nn.Module):
 class double_conv(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(double_conv, self).__init__()
-        self.conv1 = nn.Conv2d(in_ch, out_ch, 3)
-        self.conv2 = nn.Conv2d(out_ch, out_ch, 3)
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_ch, out_ch, 3),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_ch, out_ch, 3),
+            nn.BatchNorm2d(out_ch),
+            nn.ReLU(inplace=True),
+        )
 
     def forward(self, *inp):
         x = inp[0]
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        return x
+        return self.conv(x)
 
 class full_down(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(full_down, self).__init__()
-        self.maxpool = nn.MaxPool2d(2) # stride defaults to kernel_size
-        self.conv = double_conv(in_ch, out_ch)
+        self.conv = nn.Sequential(
+            nn.MaxPool2d(2), # stride defaults to kernel_size
+            double_conv(in_ch, out_ch),
+        )
 
     def forward(self, *inp):
         x = inp[0]
-        x = self.maxpool(x)
-        x = self.conv(x)
-        return x
+        return self.conv(x)
 
 class full_up(nn.Module):
     def __init__(self, in_ch, out_ch):
