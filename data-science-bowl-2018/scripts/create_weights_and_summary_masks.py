@@ -1,18 +1,50 @@
+#!/usr/bin/env python3
 """
-Set of helpers to make our masks useful to u net
+Script to take the segmented masks that are given and:
+    * Create a single mask by ORing them together
+    * Create a gap between different objects (that are connected)
+    * Create a map of weights that encourages our code to learn the small gaps
+    between nearby objects
+Outputs this somewhere sane.
 """
+import os
 import numpy as np
+import skimage.io
 from scipy.ndimage import distance_transform_edt, label
-# from multiprocessing import Pool
-# import tqdm
+
+datadir = "/home/christopher/Data/data/ml/data-science-bowl-2018/"
+weightsdir = datadir + "weights/"
+
+def main():
+    wdir = weightsdir + "weights_test/" # must end in a slash
+    try:
+        os.listdir(wdir)
+    except FileNotFoundError:
+        pass
+    else:
+        raise Exception("weights dir {} exists".format(wdir))
+
+    summary_masks, weights = weights_from_all_masks(load_masks())
+    save_masks_and_weights(summary_masks, weights, wdir)
+
+
+def load_masks():
+    keys = os.listdir(datadir + "train")
+    res = []
+    for key in keys:
+        f_dir = datadir + "train/" + key + "/masks/"
+        fnames = [f_dir + fname for fname in os.listdir(f_dir)]
+        f_res = []
+        for img in skimage.io.imread_collection(fnames):
+            assert len(img.shape) == 2
+            assert img.shape[0] >= 256 and img.shape[1] >= 256
+            f_res.append(img)
+        res.append(np.array(f_res, dtype=np.bool))
+    return res[:1]
 
 # mask_list is a list( np.array(mask1, mask2), np.array(mask1, mask2), ... )
 def weights_from_all_masks(mask_list):
     summary_masks, weights = [], []
-    # with Pool(8) as p:
-    #     for v in tqdm.tqdm(p.map(weights_from_mask, mask_list), total=len(mask_list)):
-    #         summary_masks.append(v[0])
-    #         weights.append(v[1])
     for (i, masks) in enumerate(mask_list):
         s, w = weights_from_mask(masks)
         summary_masks.append(s)
@@ -71,3 +103,15 @@ def get_segmented_summary_mask(masks):
                 if res[x][y] != 0 and res[x][y] != p:
                     res[i][j] = 0
     return res.astype(np.bool)
+
+def save_masks_and_weights(summary_masks, weights, wdir):
+    try:
+        os.mkdir(wdir)
+    except FileExistsError:
+        raise Exception("You have already saved weights. Go remove them before saving new ones!")
+
+    np.save(wdir + "weights", weights)
+    np.save(wdir + "summary_masks", summary_masks)
+
+if __name__ == "__main__":
+    main()
