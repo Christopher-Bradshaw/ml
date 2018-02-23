@@ -11,8 +11,12 @@ def training_images():
 def test_images():
     return _get_images("test")
 
-def weights(wdir):
-    return np.load(weightsdir + wdir + "/summary_masks.npy"), np.load(weightsdir + wdir + "/weights.npy")
+def masks_and_weights(wdir):
+    masks = np.load(weightsdir + wdir + "/summary_masks.npy")
+    masks = [i.astype(np.uint8) for i in masks]
+    weights = np.load(weightsdir + wdir + "/weights.npy")
+    weights = [i.astype(np.uint8) for i in weights]
+    return masks, weights
 
 def _get_images(subdir):
     if subdir not in set(["train", "test"]):
