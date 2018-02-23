@@ -25,7 +25,7 @@ def separate_masks(img):
     return masks
 
 def remove_tiny_masks(masks):
-    cutoff = 4
+    cutoff = 20
     big_masks = []
     for m in masks:
         if np.count_nonzero(m) > cutoff:
@@ -37,6 +37,7 @@ def write_submission(fname, images, keys):
     f = open(fname, "w")
     f.write("ImageId,EncodedPixels\n")
     for i in range(len(images)):
+        # Images with no nuclei found
         if len(images[i]) == 0:
             print(keys[i], i)
         for obj in images[i]:

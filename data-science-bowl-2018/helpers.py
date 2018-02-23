@@ -1,3 +1,12 @@
+import numpy as np
+import torch
+
+# takes a normal list of np.arrays and returns a 4d variables
+def tensorfy(x):
+    xv = torch.from_numpy(np.array(x).astype(np.float32))
+    xv.unsqueeze_(1)
+    return xv
+
 # given masks returned from training_masks, returns them without any of the border masks
 # useful for stats
 def filter_border_masks(masks):

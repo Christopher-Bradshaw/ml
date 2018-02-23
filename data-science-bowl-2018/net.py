@@ -4,7 +4,7 @@ Made use of: https://github.com/milesial/Pytorch-UNet/tree/master/unet
 """
 import torch.nn as nn
 import torch
-import torch.nn.functional as F
+# import torch.nn.functional as F
 
 # u_net predictive region is 184 shorter on each side than the input
 # I think that will be hard for us. Also it is a massive network. I am going to drop 1 layer.
@@ -25,7 +25,10 @@ class u_net(nn.Module):
         self.u3 = full_up(512, 256)
         self.u2 = full_up(256, 128)
         self.u1 = full_up(128, 64)
-        self.out = nn.Conv2d(64, 1, 1)
+        self.out = nn.Sequential(
+                nn.Conv2d(64, 1, 1),
+                # nn.ReLU(), This is a bad idea but I'm not sure why...
+        )
 
     def forward(self, *inp):
         x = inp[0]
@@ -97,18 +100,18 @@ class full_up(nn.Module):
 
 
 ##### Helpers
-def get_input_size_from_output(output_size):
-    x = output_size
-    dc = 4 # amount of size lost in double conv
+# def get_input_size_from_output(output_size):
+#     x = output_size
+#     dc = 4 # amount of size lost in double conv
 
-    up_steps, down_steps = 3, 3
-    for i in range(up_steps):
-        x += 4
-        x /= 2
-        if x % 2 == 1:
-            return 0
-    for i in range(down_steps):
-        x += 4
-        x *= 2
-    x += 4
-    return(x)
+#     up_steps, down_steps = 3, 3
+#     for i in range(up_steps):
+#         x += 4
+#         x /= 2
+#         if x % 2 == 1:
+#             return 0
+#     for i in range(down_steps):
+#         x += 4
+#         x *= 2
+#     x += 4
+#     return(x)
