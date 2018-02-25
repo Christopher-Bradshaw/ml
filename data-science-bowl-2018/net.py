@@ -28,6 +28,7 @@ class u_net(nn.Module):
         self.out = nn.Sequential(
                 nn.Conv2d(64, 1, 1),
                 # nn.ReLU(), This is a bad idea but I'm not sure why...
+                # consider handtanh to put this between 0 and 1
         )
 
     def forward(self, *inp):

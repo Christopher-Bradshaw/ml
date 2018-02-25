@@ -15,7 +15,6 @@ def masks_and_weights(wdir):
     masks = np.load(weightsdir + wdir + "/summary_masks.npy")
     masks = [i.astype(np.uint8) for i in masks]
     weights = np.load(weightsdir + wdir + "/weights.npy")
-    weights = [i.astype(np.uint8) for i in weights]
     return masks, weights
 
 def _get_images(subdir):

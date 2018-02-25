@@ -16,7 +16,8 @@ datadir = "/home/christopher/Data/data/ml/data-science-bowl-2018/"
 weightsdir = datadir + "weights/"
 
 def main():
-    wdir = weightsdir + "weights_test/" # must end in a slash
+    wdir = weightsdir + "one_and_two_term_weights/" # must end in a slash
+    # wdir = weightsdir + "weights_test/" # must end in a slash
     try:
         os.listdir(wdir)
     except FileNotFoundError:
@@ -26,7 +27,6 @@ def main():
 
     summary_masks, weights = weights_from_all_masks(load_masks())
     save_masks_and_weights(summary_masks, weights, wdir)
-
 
 def load_masks():
     keys = os.listdir(datadir + "train")
@@ -40,7 +40,7 @@ def load_masks():
             assert img.shape[0] >= 256 and img.shape[1] >= 256
             f_res.append(img)
         res.append(np.array(f_res, dtype=np.bool))
-    return res[:1]
+    return res#[93:93+1]
 
 # mask_list is a list( np.array(mask1, mask2), np.array(mask1, mask2), ... )
 def weights_from_all_masks(mask_list):
@@ -55,7 +55,7 @@ def weights_from_all_masks(mask_list):
 
 # masks is a np.array( np.array(mask1), np.array(mask2), ... ) with type bool
 def weights_from_mask(masks):
-    sigma, w0 = 5, 10
+    sigma, w_two, w_one = 5, 1, 1
     width, height = len(masks[0]), len(masks[0][0])
 
     seg_summary_mask = get_segmented_summary_mask(masks)
@@ -81,9 +81,11 @@ def weights_from_mask(masks):
             if seg_summary_mask[i][j] != 0:
                 weights[i][j] = nuclei_weight
             else:
-                d = np.unique(distances[i][j])
+                d = np.sort(np.unique(distances[i][j]))
                 assert (len(d) in (1, 2))
-                weights[i][j] = empty_weight + w0 * np.exp( -((d[0]+d[-1])**2) / (2 * sigma**2) )
+                weights[i][j] = (empty_weight +
+                    w_two * nuclei_weight * np.exp( -((d[0]+d[-1])**2) / (2 * sigma**2) ) +
+                    w_one * nuclei_weight * np.exp( -(d[0]**2) / (sigma**2) ))
     return seg_summary_mask, weights
 
 def get_segmented_summary_mask(masks):
