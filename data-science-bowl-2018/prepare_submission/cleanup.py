@@ -2,27 +2,31 @@
 Pre submission cleanup utilities
 """
 import numpy as np
-from scipy.ndimage import label
+# import cv2 Docs are hard to find/read?
+from scipy.ndimage.morphology import binary_fill_holes, binary_opening
+from skimage import filters
 
-def cleanup(img, cutoff):
-    img = (img > cutoff).astype(np.int)
-    img = _separate_masks(img)
-    img = _remove_tiny_masks(img)
+
+
+def cleanup(img):
+    cutoff = filters.threshold_otsu(img)
+    img = (img > cutoff).astype(np.uint8)
+    img = _remove_tiny_regions(img)
     return img
 
 
-# given a 2d array with many masks, split it out into its components
-def _separate_masks(img):
-    regions, n = label(img)
-    masks = []
-    for i in range(1, n+1):
-        masks.append(regions == i)
-    return masks
+def _remove_tiny_regions(img):
+    # consider using circular kernels
+    kernel1 = np.ones((3, 3)).astype(np.uint8)
+    kernel2 = np.ones((3, 3)).astype(np.uint8)
+    # Fill fully enclosed holes
+    img = binary_fill_holes(img).astype(np.uint8)
+    # Destroy small things
+    img = binary_opening(img, kernel1).astype(np.uint8)
+    # opening - erosion followed by dilation
+    # img = cv2.morphologyEx(img, cv2.MORPH_ERODE, kernel1)
+    # img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel2, iterations=2)
+    # img = cv2.morphologyEx(img, cv2.MORPH_DILATE, kernel1)
 
-def _remove_tiny_masks(masks):
-    cutoff = 13
-    big_masks = []
-    for m in masks:
-        if np.count_nonzero(m) > cutoff:
-            big_masks.append(m)
-    return(big_masks)
+
+    return img

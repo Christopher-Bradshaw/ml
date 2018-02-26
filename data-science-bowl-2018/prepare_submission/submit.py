@@ -2,6 +2,7 @@
 Tools to submit. No transforms, just the submission
 """
 import numpy as np
+from scipy.ndimage import label
 
 def write_submission(fname, images, keys):
     print("Submitting for {} images".format(len(images)))
@@ -11,7 +12,7 @@ def write_submission(fname, images, keys):
         # Images with no nuclei found
         if len(images[i]) == 0:
             raise Exception("No nuclei found in image {}".format(i))
-        for obj in images[i]:
+        for obj in _separate_masks(images[i]):
             f.write("{},{}\n".format(
                 keys[i],
                 " ".join([str(x) for x in _rle_encoding(obj)])
@@ -30,3 +31,11 @@ def _rle_encoding(x):
         run_lengths[-1] += 1
         prev = b
     return run_lengths
+
+# given a 2d array with many masks, split it out into its components
+def _separate_masks(img):
+    regions, n = label(img)
+    masks = []
+    for i in range(1, n+1):
+        masks.append(regions == i)
+    return masks
