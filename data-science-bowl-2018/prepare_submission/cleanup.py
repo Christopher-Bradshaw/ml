@@ -9,8 +9,6 @@ from skimage import filters
 
 
 def cleanup(img):
-    cutoff = filters.threshold_otsu(img)
-    img = (img > cutoff).astype(np.uint8)
     img = _remove_tiny_regions(img)
     return img
 
