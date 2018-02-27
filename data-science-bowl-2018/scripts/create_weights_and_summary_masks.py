@@ -10,13 +10,13 @@ Outputs this somewhere sane.
 import os
 import numpy as np
 import skimage.io
-from scipy.ndimage import distance_transform_edt, label
+from scipy.ndimage import distance_transform_edt, label, binary_erosion
 
 datadir = "/home/christopher/Data/data/ml/data-science-bowl-2018/"
 weightsdir = datadir + "weights/"
 
 def main():
-    wdir = weightsdir + "one_and_two_term_weights/" # must end in a slash
+    wdir = weightsdir + "enforce_separation/" # must end in a slash
     # wdir = weightsdir + "weights_test/" # must end in a slash
     try:
         os.listdir(wdir)
@@ -40,7 +40,7 @@ def load_masks():
             assert img.shape[0] >= 256 and img.shape[1] >= 256
             f_res.append(img)
         res.append(np.array(f_res, dtype=np.bool))
-    return res#[93:93+1]
+    return res
 
 # mask_list is a list( np.array(mask1, mask2), np.array(mask1, mask2), ... )
 def weights_from_all_masks(mask_list):
@@ -55,14 +55,14 @@ def weights_from_all_masks(mask_list):
 
 # masks is a np.array( np.array(mask1), np.array(mask2), ... ) with type bool
 def weights_from_mask(masks):
-    sigma, w_two, w_one = 5, 1, 1
+    sigma, w_two, w_one = 5, 5, 5
     width, height = len(masks[0]), len(masks[0][0])
 
     seg_summary_mask = get_segmented_summary_mask(masks)
 
     # weight nuceli vs empty space
     empty_weight = 1
-    nuclei_weight = empty_weight * np.size(seg_summary_mask) / np.count_nonzero(seg_summary_mask)
+    nuclei_weight = 10
 
     # get distances from each pixel to the nearest true region. Remove one true region each
     # time to get two distances
@@ -90,20 +90,9 @@ def weights_from_mask(masks):
 
 def get_segmented_summary_mask(masks):
     res = np.zeros(masks[0].shape)
+    kernel = np.ones((3, 3)).astype(np.uint8)
     for i, mask in enumerate(masks):
-        res += (i+1)*mask
-    width, height = len(res), len(res[0])
-
-    for i in range(width):
-        for j in range(height):
-            p = res[i][j]
-            if p == 0:
-                continue
-            for (x, y) in [(i+1, j), (i-1, j), (i, j+1), (i, j-1)]:
-                if not ((0 < x < width) and (0 < y < height)):
-                    continue
-                if res[x][y] != 0 and res[x][y] != p:
-                    res[i][j] = 0
+        res += binary_erosion(mask, kernel)
     return res.astype(np.bool)
 
 def save_masks_and_weights(summary_masks, weights, wdir):
